@@ -1,0 +1,72 @@
+<html>
+    <head>
+	<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+</head>
+
+
+    <script>
+        $(function () {
+            // Config
+            var totalColumnsNum = 100;
+
+            // Major elements
+            var h = $(document).height();
+            var w = $(document).width();
+
+            // Calculate rows num
+            var hw_ratio = h/w;
+            var rows_num = hw_ratio*totalColumnsNum;
+
+
+            console.log('height:' + h + 'width: ' + w);
+            var main = $('.main');
+
+            function appendColumn(n) {
+                var d = document.createElement('div');
+
+                $(d).addClass('column');
+
+                for (var i=0; i<rows_num; i++) {
+                    var r = document.createElement('div');
+
+                    $(r).attr('id', n.toString() + ',' + i.toString());
+                    $(r).addClass('row');
+                    $(r).css({height: 100/rows_num+ "%"});
+
+                    $(d).append($(r));
+                }
+                // $(d).css({'height': 100/totalColumnsNum+"%"});
+                main.append($(d));
+            }
+            for (var n=0; n<totalColumnsNum; n++) {
+                appendColumn(n+1);
+            }
+        });
+    </script>
+    <style>
+        .main {
+            display: table;
+            table-layout: fixed;
+            width: 100%;
+            height: 100vh;
+            border: 1px solid pink;
+        }
+        .column {
+            display: table-cell;
+            border: 1px solid blue;
+        }
+        .row {
+            display: block;
+            border: 1px solid white;
+            background-color: #da39a3;
+        }
+    </style>
+
+    <body>
+
+    <div class="main">
+
+    </div>
+
+    </body>
+</html>

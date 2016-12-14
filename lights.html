@@ -1,0 +1,107 @@
+<html>
+	<!-- get jquery -->
+	<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+
+  <script>
+  $(function () {
+  	// var now = new Date();
+  	// var start = new Date(now.getFullYear(), 0, 0);
+  	// var diff = now - start;
+  	// var oneDay = 1000 * 60 * 60 * 24;
+  	// var day = Math.floor(diff / oneDay);
+  	// alert(day);
+  	console.log("all clear");
+	  var hexables = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
+	  var hexablesMini = ['1', '4', '7', 'a', 'd'];
+	  var test = '000000';
+	  var colors = [];
+	  	// ie {13, '#f231fk'}
+  	var numColors = 4000;
+  	var numLights = 100;
+  	var windowWidth = $(document).width();
+
+	  function createPalette (hexArray) {
+	    for (var i = 0; i < numColors; i++) {
+	      var obj = {
+	        id: i,
+	        color: getRandomColor()
+	      }
+	      colors.push(obj);
+	    }
+	  }
+
+  	//make em dance
+  	function updateRandomWithRandom(max, colors) {
+  	  var index = getRandomNumber(max);
+  	  // var obj = {
+  	  //   id: index,
+  	  //   color: getRandomColor()
+  	  // }
+  	  // colors[index] = obj;
+  	 // colors[index] = whiteColor? neato when it slowly fades away
+  	 $('#light-'+index).fadeOut('100').css({"background-color": getRandomColor}).fadeIn('100');
+  	}
+
+  	function getRandomNumber(max) {
+  	  return Math.floor(Math.random() * max);
+  	}
+
+	  // http://stackoverflow.com/questions/1484506/random-color-generator-in-javascript
+	  function getRandomColor() {
+	      var letters = '0123456789ABCDEF'.split('');
+	      var color = ''; //'#';
+	      for (var i = 0; i < 6; i++ ) {
+	          color += letters[Math.floor(getRandomNumber(letters.length))];
+	      }
+	      return color;
+	  }
+
+	  // create blank lights
+	  // <div id="light-[id: 0 - 99]" class="christmas-light' style="width: 1vh;height:50px;"></div>
+	  for (var i=1;i<numLights-1;i++) {
+	  	console.log("appending light");
+
+	  	var div = document.createElement("div");
+	  	$(div).attr('id', 'light-' + i.toString())
+	  		.attr('class','christmas-light')
+		  	.css({
+		  		"background-color": getRandomColor(),
+		  		"width": windowWidth/numLights,
+		  		// "height": windowWidth/numLights,
+		  		"border-radius": '50%' });
+	  	$('#lights-container').append(div);
+
+	  }
+	  // createPalette(hexables);
+  	var clockIt = function () {
+  	  updateRandomWithRandom(numLights, colors);
+  	  setTimeout(clockIt, 100); // Tick.
+  	};
+  	setTimeout(clockIt, 100);
+  	$('#lights-container').css({'height': windowWidth/numLights});
+
+  });
+  </script>
+
+	<style>
+		#lights-container {
+			width: 100%;
+			height: 100px;
+            display: table;
+            table-layout: fixed;
+			/* overflow: hidden; */
+			/*border: 1px solid pink;*/
+		}
+		.christmas-light {
+            /* display: inline-block;*/
+            display: table-cell;
+			margin-left: 2px;
+			margin-right: 2px;
+			padding: 0px;
+			/* height: 100%;*/
+			/*width: 16px;*/
+		}
+	</style>
+	<div id="lights-container"></div>
+
+</html>
