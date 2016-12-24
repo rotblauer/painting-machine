@@ -31,6 +31,7 @@
 }
 .christmas-light {
     display: inline-block;
+    border-radius: 50%;
     /*margin-left: 2px;*/
     /*margin-right: 2px;*/
     padding: 0px;

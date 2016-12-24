@@ -49,8 +49,8 @@
 			  	// set size of box
 			  	$('#christmas-lights-container-box').css({'height': '100vh'});// windowWidth/numChristmasLights});
 
-			  	for (var j = 1; j < rows_num + 1; j++) {
-		  		  for (var i=1;i<numChristmasLights-1;i++) {
+			  	for (var j = 1; j < rows_num+1; j++) {
+		  		  for (var i=1;i<numChristmasLights+1;i++) {
 		  		  	var div = document.createElement("div");
 		  		  	$(div).attr('id', 'light-' + (i*j).toString())
 		  		  		.attr('class','christmas-light')
