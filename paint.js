@@ -97,7 +97,7 @@ function sumArrayElements(a1, a2){
 }
 
 function colorizeCell(x, y, color) {
-	$('#light-'+x.toString()+y.toString())
+	$('#cell-'+x.toString()+y.toString())
 		// .fadeOut(tickRate)
 		.css({"background-color": "#" + color})
 		// .fadeIn(tickRate)
@@ -113,7 +113,7 @@ function setGrid(callback) {
 	for (var y = 1; y < ySize + 1; y++) {
 	  for (var x = 1; x < xSize + 1; x++) {
 	  	var div = document.createElement("div");
-	  	$(div).attr('id', 'light-' + x.toString() + y.toString())
+	  	$(div).attr('id', 'cell-' + x.toString() + y.toString())
 	  		.attr('class','cell')
 		  	.css({
 		  		"background-color": "#" + defaultColor,
@@ -152,8 +152,6 @@ function Painting (maxMoves, startingPoint, startColor, tints, hues) {
   this.movement = [];
   this.tints = tints;
   this.hues = hues;
-
-  if (this.movesTaken == this.maxMoves) { return; }
 }
 Painting.prototype.BlindMansRainbow = function () {
   this.possibleMoves = [-1,0,1];
@@ -161,22 +159,32 @@ Painting.prototype.BlindMansRainbow = function () {
   this.brush = getNearColor(this.brush, this.tints, this.hues);
   this.pathIndex = drawNext(this.pathIndex, this.movement, this.brush);
   this.movesTaken++;
-  this.BlindMansRainbow();
+  if (this.movesTaken == this.maxMoves) { return; }
+  // this.BlindMansRainbow();
 }
 Painting.prototype.Drips = function () {
   this.movement = [0,1];
   this.brush = getNearColor(this.brush, this.tints, this.hues);
   this.pathIndex = drawNext(this.pathIndex, this.movement, this.brush);
+  console.log('pathIndex', this.pathIndex);
+  console.log('movesTaken: ', this.movesTaken);
   this.movesTaken++
-  this.Drips();
+  // return this.movesTaken;
 }
 
 $(function () {
   setGrid(null);
 
-  // var blindman1 = new Painting(1000, [0,0], '112233', allTints, 'rRgGbB').BlindMansRainbow();
-  // var drips1 = new Painting(1000, getRandomCoord(), 'bf0000', allTints, 'rR').Drips();
+  // var blindman1 = new Painting(100, [0,0], '112233', allTints, 'rRgGbB').BlindMansRainbow();
+  var p1 = new Painting(100, getRandomCoord(), 'bf0000', allTints, 'rR');
 
+  var paintDrips = function () {
+    if (p1.movesTaken < p1.maxMoves) {
+      p1.Drips();
+    }
+    setTimeout(paintDrips, tickRate);
+  }
+  setTimeout(paintDrips, tickRate);
 	// pathIndex = getRandomCoord();
 	
 	// // var color = getRandomColor(allTints);
