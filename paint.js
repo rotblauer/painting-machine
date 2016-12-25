@@ -3,7 +3,7 @@ var allHues = ['r', 'R', 'g', 'G', 'b', 'B'];
 var allTints = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
 var lightTints = allTints.slice(12,15);
 var darkTints = allTints.slice(0,8);
-var numCellsPerRow = 100;
+var xSize = 100;
 var defaultColor = "ffffff";
 var tickRate = 20; // milliseconds
 var totalMoves = 0;
@@ -14,7 +14,7 @@ var frame = $("#picture-frame");
 var allowedWidth = frame.width();
 var allowedHeight = frame.height();
 var hw_ratio = allowedHeight/allowedWidth;
-var rows_num = Math.floor(hw_ratio*numCellsPerRow);
+var ySize = Math.floor(hw_ratio*xSize);
 
 // Placeholders
 var pathIndex = [];
@@ -37,7 +37,7 @@ function getRandomNumber(max) {
   return Math.floor(Math.random() * max);
 }
 function getRandomCoord() {
-	return [getRandomNumber(numCellsPerRow), getRandomNumber(rows_num)];
+	return [getRandomNumber(xSize), getRandomNumber(ySize)];
 }
 function getRandomFromArray(arr) {
 	return arr[Math.floor(Math.random()*arr.length)]
@@ -110,15 +110,15 @@ function setGrid(callback) {
 	frame.center();
 	frame.css({"background-color": "#" + defaultColor});
 
-	for (var y = 1; y < rows_num + 1; y++) {
-	  for (var x = 1; x < numCellsPerRow + 1; x++) {
+	for (var y = 1; y < ySize + 1; y++) {
+	  for (var x = 1; x < xSize + 1; x++) {
 	  	var div = document.createElement("div");
 	  	$(div).attr('id', 'light-' + x.toString() + y.toString())
 	  		.attr('class','cell')
 		  	.css({
 		  		"background-color": "#" + defaultColor,
-		  		"width": 100/numCellsPerRow + '%',
-		  		"height": 100/rows_num + "%"
+		  		"width": 100/xSize + '%',
+		  		"height": 100/ySize + "%"
 		  	})
 		  	// .text(x.toString() + "," + y.toString())
 		  	;
@@ -137,7 +137,7 @@ function drawNext(coords, incrementArray, color) {
 	var s = sumArrayElements(coords, incrementArray);
 	
 	// wrap if extends beyond painting
-	if (s[0] > numCellsPerRow || s[1] > rows_num || s[0] < 0 || s[1] < 0) {
+	if (s[0] > xSize || s[1] > ySize || s[0] < 0 || s[1] < 0) {
 		s = getRandomCoord();
 	}
 	colorizeCell(s[0], s[1], color);
@@ -175,7 +175,7 @@ $(function () {
   setGrid(null);
 
   // var blindman1 = new Painting(1000, [0,0], '112233', allTints, 'rRgGbB').BlindMansRainbow();
-  var drips1 = new Painting(1000, getRandomCoord(), 'bf0000', allTints, 'rR').Drips();
+  // var drips1 = new Painting(1000, getRandomCoord(), 'bf0000', allTints, 'rR').Drips();
 
 	// pathIndex = getRandomCoord();
 	
