@@ -1,17 +1,18 @@
 // Settings
-var hexables = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
-var mutedHexables = hexables.slice(12,15);
-var darkHexables = hexables.slice(0,8);
+var allHues = ['r', 'R', 'g', 'G', 'b', 'B'];
+var allTints = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
+var lightTints = allTints.slice(12,15);
+var darkTints = allTints.slice(0,8);
 var numCellsPerRow = 100;
-var defaultColor = "ff4422";
+var defaultColor = "ffffff";
 var tickRate = 20; // milliseconds
 var totalMoves = 0;
 var totalMovesAllowed = 10000;
 var frame = $("#picture-frame");
 
 // Computed globals
-var allowedWidth = $(frame).width();
-var allowedHeight = $(frame).height();
+var allowedWidth = frame.width();
+var allowedHeight = frame.height();
 var hw_ratio = allowedHeight/allowedWidth;
 var rows_num = Math.floor(hw_ratio*numCellsPerRow);
 
@@ -41,30 +42,38 @@ function getRandomCoord() {
 function getRandomFromArray(arr) {
 	return arr[Math.floor(Math.random()*arr.length)]
 }
-function getRandomColor(letters) {
+function getRandomColor(tints) {
     var color = ''; 
     for (var i = 0; i < 6; i++ ) {
-        color += letters[Math.floor(getRandomNumber(letters.length))];
+        color += tints[Math.floor(getRandomNumber(tints.length))];
     }
     return color;
 }
 // given 'a' returns '9' or 'b'
-function getNearHex(hex, palette) {
-	var l = palette.length;
-	var i = palette.indexOf(hex);
-	var inc = getRandomFromArray([-1,1]);
+function getNearTint(tint, tintSet) {
+	var l = tintSet.length;
+	var i = tintSet.indexOf(tint);
+  if (i < 0) {
+    return getRandomFromArray(tintSet);
+  }
+	var inc = Math.random() < 0.5 ? 1 : -1;  // either + or - the tint
 	var j = i + inc;
-	return palette[j]; // pallete[-1] --> last, -2 second-last, &c
+	return tintSet[j]; // pallete[-1] --> last, -2 second-last, &c
 }
-// given 'ffffff' returns 'ff0fff'
-function getNearColor(color, palette) {
-	var i = getRandomFromArray([0,1,2,3,4,5]);
-  var colorArr = color.split("");
-  var char = colorArr[i];
-  var newTint = getNearHex(char, palette);
-  colorArr[i] = newTint;
-  var nearColor = colorArr.join("");
-  return nearColor;
+// color: 'ffffff'
+// returns 'ff0fff'
+// tintSet: allTints, lightTints, &c
+// hueSet: rRgGbB --- sets rrggbb locations to mess with; ie [0,1,2] is rrg, [3,5,6] is gbb
+// 
+function getNearColor(color, tintSet, hueString) {
+  var hueSet = hueString.split(""); // 'rRg' -> ['r', 'R', 'g']
+	var i = getRandomFromArray(hueSet); // ie 'r', 'G', ...
+  var hueIndex = allHues.indexOf(i); // 1, 0, 4, ...
+  var colorArr = color.split(""); 
+  var char = colorArr[hueIndex];
+  var newTint = getNearTint(char, tintSet);
+  colorArr[hueIndex] = newTint;
+  return colorArr.join("");
 }
 function sumArrayElements(a1, a2){
 	// ASSUME [a,b] & [c,d]
@@ -135,26 +144,82 @@ function drawNext(coords, incrementArray, color) {
 	return s;
 }
 
+function Painting (maxMoves, startingPoint, startColor, tints, hues) {
+  this.maxMoves = maxMoves;
+  this.movesTaken = 0;
+  this.pathIndex = startingPoint;
+  this.brush = startColor;
+  this.movement = [];
+  this.tints = tints;
+  this.hues = hues;
+
+  if (this.movesTaken == this.maxMoves) { return; }
+}
+Painting.prototype.BlindMansRainbow = function () {
+  this.possibleMoves = [-1,0,1];
+  this.movement = [getRandomFromArray(this.possibleMoves), getRandomFromArray(this.possibleMoves)];
+  this.brush = getNearColor(this.brush, this.tints, this.hues);
+  this.pathIndex = drawNext(this.pathIndex, this.movement, this.brush);
+  this.movesTaken++;
+  this.BlindMansRainbow();
+}
+Painting.prototype.Drips = function () {
+  this.movement = [0,1];
+  this.brush = getNearColor(this.brush, this.tints, this.hues);
+  this.pathIndex = drawNext(this.pathIndex, this.movement, this.brush);
+  this.movesTaken++
+  this.Drips();
+}
+
 $(function () {
   setGrid(null);
-	pathIndex = getRandomCoord();
-	var moves = [-1,0,1];
-	var color = getRandomColor(hexables);
-  var draw = function () {
-  	if (totalMoves < totalMovesAllowed) {
-  		var r = [getRandomFromArray(moves), getRandomFromArray(moves)];
-  		
-  		// if (Math.random() < 0.05) {
-  		// 	pathIndex = getRandomCoord();
-  		// }
-  		
-  		color = getNearColor(color, hexables);
-  		pathIndex = drawNext(pathIndex, r, color);	
-  		totalMoves++;
-  		setTimeout(draw, tickRate);	
-  	}
-  }
-  setTimeout(draw, tickRate);
+
+  // var blindman1 = new Painting(1000, [0,0], '112233', allTints, 'rRgGbB').BlindMansRainbow();
+  var drips1 = new Painting(1000, getRandomCoord(), 'bf0000', allTints, 'rR').Drips();
+
+	// pathIndex = getRandomCoord();
+	
+	// // var color = getRandomColor(allTints);
+ //  var color = getNearColor(defaultColor, lightTints, [0,1,2]);
+
+ //  var draw1 = function () {
+ //  	if (totalMoves == totalMovesAllowed) return;
+	  
+ //    var possibleMoves = [-1,0,1];	
+ //    var movement = [getRandomFromArray(possibleMoves), getRandomFromArray(possibleMoves)];
+		
+	// 	// if (Math.random() < 0.05) {
+	// 	// 	pathIndex = getRandomCoord();
+	// 	// }
+		
+	// 	color = getNearColor(color, allTints, [0,1,2,3,4,5]);
+	// 	pathIndex = drawNext(pathIndex, movement, color);	
+	// 	totalMoves++;
+	// 	setTimeout(draw1, tickRate);	
+ //  }
+  
+  
+  
+  // setTimeout(p, tickRate);
+  // setTimeout(draw1, tickRate);
+  // var draw2 = function () {
+  //   var tintSet = [0,1,2]; // rrg
+  //   var lineLength = 10;
+
+  //   if (totalMoves == totalMovesAllowed) return;
+
+  //   var movement = [0, 1];
+  //   color = getNearColor(color, lightTints, tintSet);
+  //   pathIndex = drawNext(pathIndex, movement, color);
+  //   lineIndex++;
+
+  //   if (lineIndex == lineLength) {
+  //     pathIndex = getRandomCoord();
+  //     lineIndex = 0;
+  //   }
+  //   setTimeout(draw2, tickRate);
+  // }
+  // setTimeout(draw2, tickRate);
 
 });
 
