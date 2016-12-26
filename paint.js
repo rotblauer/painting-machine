@@ -1,5 +1,6 @@
 // Settings
 var dotSelection = ['∙', '•','・','◦','●','○','◎','◉','⦿','⁌','⁍','⁃','-','✢','✣','✤','✥','✦','✧','★','☆','⭐︎','✯','✡','✩','✪','✫','✬','✭','✮','✶','✷','✵','✸','✹','✺','❊','✻','✽','✼','❉','✱','✲','✾','❃','❋','✳︎','✴︎','❇︎','❈','※','❅','❆','❄︎','⚙','✿','❀','❁','❂','✓','✔︎','✕','✖︎','✗','✘','﹅','﹆','❍','❤︎','☙','❧','❦','❡']; // WIP
+var dotSelectionJustDots = dotSelection.slice(0,8);
 
 var allHues = ['r', 'R', 'g', 'G', 'b', 'B'];
 var allTints = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
@@ -42,11 +43,11 @@ var fill_Resolution = x_Resolution*y_Resolution;
     });
 })(jQuery);
 
-function getRandomNumber(max) {
-  return Math.floor(Math.random() * max);
+function getRandomNumber(min,max) {
+  return Math.floor(Math.random() * max) + min;
 }
 function getRandomCoord() {
-	return [getRandomNumber(x_Resolution), getRandomNumber(y_Resolution)];
+  return [getRandomNumber(0,x_Resolution), getRandomNumber(0,y_Resolution)];
 }
 function getRandomFromArray(arr) {
 	return arr[Math.floor(Math.random()*arr.length)]
@@ -54,7 +55,7 @@ function getRandomFromArray(arr) {
 function getRandomColor(tints) {
     var color = '';
     for (var i = 0; i < 6; i++ ) {
-        color += tints[Math.floor(getRandomNumber(tints.length))];
+        color += tints[Math.floor(getRandomNumber(0,tints.length))];
     }
     return color;
 }
@@ -68,7 +69,7 @@ function getNearTint(tint, tintSet) {
 	var inc = Math.random() < 0.5 ? 1 : -1;  // either + or - the tint, TODO: argue near-increment and/or variabilty
 	var j = i + inc;
   if (j < 0) {
-    j = getRandomNumber(tintSet.length);  // TODO: there are many more ways to handle this case
+    j = getRandomNumber(0,tintSet.length);  // TODO: there are many more ways to handle this case
   }
 	return tintSet[j % tintSet.length];
 }
@@ -158,8 +159,8 @@ function setGrid(callback) {
 }
 
 function updateRandomWithRandom(max, colors) {
-  var index = getRandomNumber(max);
-  var index2 = getRandomNumber(max);
+  var index = getRandomNumber(0,max);
+  var index2 = getRandomNumber(0,max);
  	colorizeCell(index, index2, getRandomColor(colors));
 }
 
@@ -266,7 +267,7 @@ $(function () {
       "border-radius": "50%",
       "transform":
       "scale("+ (Math.random() < 0.5 ? 1 : -1) * Math.random()*1+  "," + (Math.random() < 0.5 ? 1 : -1) * Math.random()*1 + ") " +
-        "skew(" + (Math.random() < 0.5 ? 1 : -1) * getRandomNumber(20) + "deg," + (Math.random() < 0.5 ? 1 : -1) * getRandomNumber(20) + "deg)" +
+        "skew(" + (Math.random() < 0.5 ? 1 : -1) * getRandomNumber(0,20) + "deg," + (Math.random() < 0.5 ? 1 : -1) * getRandomNumber(0,20) + "deg)" +
         "rotate(" + Math.floor(Math.random() * 360) + "deg)",
       "color": "#ffffff"
     };
@@ -285,7 +286,25 @@ $(function () {
     };
   };
 
-  // var dripPainting2 = new Painting(fill_Resolution, [1,1], 'bf0000', allTints.slice(7,15), 'rgGbB');
+  var styleOpt3 = function (x) {
+    return {
+      "width": cellWidth,
+      "height": cellHeight,
+      "border-radius": getRandomNumber(25,50) + "%",
+      "transform":
+      "translate(0, " + Math.sin((x)/(x_Resolution+1)*Math.PI)*y_Resolution + getRandomNumber(0,20) + "px)"
+        + " scaleY(" + getRandomNumber(0,9) + ")"
+      ,
+      // "scale("+ Math.random()*2 + ") ",
+      // "rotate(" + Math.floor(Math.random() * 360) + "deg)",
+      "color": getRandomColor(allTints),
+      "opacity": Math.random().toString(),
+      "vertical-align":"top",
+      "text-align":"center",
+      "font-size":"smaller"
+    };
+  };
+
   var dripPainting2 = new Painting(fill_Resolution, [1,1], 'bf0000', allTints.slice(7,15), 'rgGbB');
   var paintDrips2 = function (callback) {
     while (dripPainting2.movesTaken < dripPainting2.maxMoves) {
@@ -295,9 +314,19 @@ $(function () {
     callback;
   }
 
+  var dripPainting3 = new Painting(fill_Resolution, [1,1], getRandomColor(allTints), allTints, 'rgbB');
+  var paintDrips3 = function (callback) {
+    while (dripPainting3.movesTaken < dripPainting3.maxMoves) {
+      // dripPainting3.Drips(styleOpt1(), getRandomFromArray(rangeBetween('a','z')));
+      dripPainting3.Drips(styleOpt3(dripPainting3.pathIndex[0])); // getRandomFromArray(dotSelectionJustDots))
+    }
+    callback;
+  }
+
   // setGrid(paintBlindly());
   // setGrid(paintDrips());
   // setGrid(paintDrips(paintBlindly()));
-  setGrid(paintBlindly(paintDrips()));
+  // setGrid(paintBlindly(paintDrips()));
   // setGrid(paintDrips2());
+  setGrid(paintDrips3());
 });
