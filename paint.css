@@ -39,13 +39,14 @@
     /*padding-left: 3px;*/
 }
 .cell {
-    display: inline-block;
+    /*display: relative;*/
+    position: absolute;
     /*border: 1px solid red;*/
     /*border-radius: 50%;*/
     /*margin-left: 2px;*/
     /*margin-right: 2px;*/
     margin: 0;
     padding: 0;
-    height: 100%;
+    /*height: 100%;*/
     /*margin-bottom: 3px; dunno why need this spacer*/
 }

@@ -3,18 +3,33 @@ var allHues = ['r', 'R', 'g', 'G', 'b', 'B'];
 var allTints = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
 var lightTints = allTints.slice(12,15);
 var darkTints = allTints.slice(0,8);
-var xSize = 100;
+
 var defaultColor = "ffffff";
-var tickRate = 500; // milliseconds
+var tickRate = 1; // milliseconds
 var totalMoves = 0;
 var totalMovesAllowed = 10000;
 var frame = $("#picture-frame");
 
 // Computed globals
-var allowedWidth = frame.width();
-var allowedHeight = frame.height();
-var hw_ratio = allowedHeight/allowedWidth;
-var ySize = Math.floor(hw_ratio*xSize);
+
+
+
+
+// x_rex = 100
+var x_Resolution = 100;
+// width = 100
+var frameWidth = frame.width();
+// cell_width = 1
+var cellWidth = frameWidth/x_Resolution;
+// heigth = 70
+var frameHeight = frame.height();
+// cell_height = 1
+var cellHeight = cellWidth; // for now
+// y_res = 100/70 * 100
+var y_Resolution = Math.floor(frameHeight/frameWidth * x_Resolution);
+
+var fill_Resolution = x_Resolution*y_Resolution;
+
 
 // Placeholders
 var pathIndex = [];
@@ -37,7 +52,7 @@ function getRandomNumber(max) {
   return Math.floor(Math.random() * max);
 }
 function getRandomCoord() {
-	return [getRandomNumber(xSize), getRandomNumber(ySize)];
+	return [getRandomNumber(x_Resolution), getRandomNumber(y_Resolution)];
 }
 function getRandomFromArray(arr) {
 	return arr[Math.floor(Math.random()*arr.length)]
@@ -58,7 +73,12 @@ function getNearTint(tint, tintSet) {
   }
 	var inc = Math.random() < 0.5 ? 1 : -1;  // either + or - the tint
 	var j = i + inc;
-	return tintSet[j]; // pallete[-1] --> last, -2 second-last, &c
+  if (j < 0) {
+    j = getRandomNumber(tintSet.length);
+  }
+  var tt = tintSet[j % tintSet.length];
+  // console.log('tint', tt);
+	return tt; // pallete[-1] --> last, -2 second-last, &c
 }
 // color: 'ffffff'
 // returns 'ff0fff'
@@ -73,9 +93,11 @@ function getNearColor(color, tintSet, hueString) {
   var char = colorArr[hueIndex];
   var newTint = getNearTint(char, tintSet);
   colorArr[hueIndex] = newTint;
+  // console.log("nearcolor:", colorArr.join(""));
   return colorArr.join("");
 }
-function sumArrayElements(a1, a2){
+function sumArrayElements(){
+  // console.log('args', arguments);
 	// ASSUME [a,b] & [c,d]
 	// return [a1[0] + a2[0], a1[1] + a2[1]];
    
@@ -93,6 +115,7 @@ function sumArrayElements(a1, a2){
        }
        results[next++]= sum;
    }
+   // console.log('results', results);
    return results;
 }
 
@@ -104,27 +127,43 @@ function colorizeCell(x, y, color) {
 		;	
 }
 
+function paintCell(x, y, color) {
+  var c = document.createElement("div");
+  $(c).attr("id", "cell-" + x.toString() + "-" + y.toString())
+    .attr("class", "cell")
+    .css({
+      "background-color": "#" + color,
+      "width": cellWidth,
+      "height": cellHeight,
+
+      "left": (x-1)*cellWidth,
+      "top": (y-1)*cellHeight
+    })
+    ;
+    $("#cell-container-box").append(c);
+}
+
 function setGrid(callback) {
 	
 	// center picture frame
 	frame.center();
 	frame.css({"background-color": "#" + defaultColor});
 
-	for (var y = 1; y < ySize + 1; y++) {
-	  for (var x = 1; x < xSize + 1; x++) {
-	  	var div = document.createElement("div");
-	  	$(div).attr('id', 'cell-' + x.toString() + y.toString())
-	  		.attr('class','cell')
-		  	.css({
-		  		"background-color": "#" + defaultColor,
-		  		"width": 100/xSize + '%',
-		  		"height": 100/ySize + "%"
-		  	})
-		  	// .text(x.toString() + "," + y.toString())
-		  	;
-	  	$('#cell-container-box').append(div);
-	  }	
-	}
+	// for (var y = 1; y < y_Resolution + 1; y++) {
+	//   for (var x = 1; x < x_Resolution + 1; x++) {
+	//   	var div = document.createElement("div");
+	//   	$(div).attr('id', 'cell-' + x.toString() + y.toString())
+	//   		.attr('class','cell')
+	// 	  	.css({
+	// 	  		"background-color": "#" + defaultColor,
+	// 	  		"width": 100/x_Resolution + '%',
+	// 	  		"height": 100/y_Resolution + "%"
+	// 	  	})
+	// 	  	// .text(x.toString() + "," + y.toString())
+	// 	  	;
+	//   	$('#cell-container-box').append(div);
+	//   }	
+	// }
 	callback;
 }
 function updateRandomWithRandom(max, colors) {
@@ -134,21 +173,24 @@ function updateRandomWithRandom(max, colors) {
 }
 
 function drawNext(coords, incrementArray, color) {
+  // console.log("dn coords", coords);
 	var s = sumArrayElements(coords, incrementArray);
 	
 	// wrap if extends beyond painting
-  if (s[0] > xSize) {
+  if (s[0] > x_Resolution) {
     s[0] = 1;
     s[1]++;
   } 
-  if (s[1] > ySize) {
+  if (s[1] > y_Resolution) {
     s[0]++;
     s[1] = 1
   }
-	// if (s[0] > xSize || s[1] > ySize || s[0] < 0 || s[1] < 0) {
+	// if (s[0] > x_Resolution || s[1] > y_Resolution || s[0] < 0 || s[1] < 0) {
 	// 	s = getRandomCoord();
 	// }
-	colorizeCell(s[0], s[1], color);
+	// colorizeCell(s[0], s[1], color);
+  paintCell(s[0], s[1], color); 
+  // console.log('s', s);
 	return s;
 }
 
@@ -170,19 +212,23 @@ Painting.prototype.BlindMansRainbow = function () {
   if (this.movesTaken == this.maxMoves) { return; }
 }
 Painting.prototype.Drips = function () {
-  this.movement = [1,0];
+  this.movement = [0,1];
   this.brush = getNearColor(this.brush, this.tints, this.hues);
+  // this.brush = '990000';
   this.pathIndex = drawNext(this.pathIndex, this.movement, this.brush);
-  console.log('pathIndex', this.pathIndex);
-  console.log('movesTaken: ', this.movesTaken);
+  // console.log('pathIndex', this.pathIndex);
+  // console.log('movesTaken: ', this.movesTaken);
   this.movesTaken++
 }
 
 $(function () {
+
+  // console.log('xres', x_Resolution);
+  // console.log('yres', y_Resolution);
   
 
   // var blindman1 = new Painting(100, [0,0], '112233', allTints, 'rRgGbB').BlindMansRainbow();
-  var p1 = new Painting(1000, [1,1], 'bf0000', allTints, 'rR');
+  var p1 = new Painting(fill_Resolution, [1,1], 'bf0000', allTints, 'rR');
   function x () {
     var paintDrips = function () {
       if (p1.movesTaken < p1.maxMoves) {
