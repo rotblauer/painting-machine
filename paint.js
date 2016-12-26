@@ -1,4 +1,6 @@
 // Settings
+var dotSelection = ['∙', '•','・','◦','●','○','◎','◉','⦿','⁌','⁍','⁃','-','✢','✣','✤','✥','✦','✧','★','☆','⭐︎','✯','✡','✩','✪','✫','✬','✭','✮','✶','✷','✵','✸','✹','✺','❊','✻','✽','✼','❉','✱','✲','✾','❃','❋','✳︎','✴︎','❇︎','❈','※','❅','❆','❄︎','⚙','✿','❀','❁','❂','✓','✔︎','✕','✖︎','✗','✘','﹅','﹆','❍','❤︎','☙','❧','❦','❡']; // WIP
+
 var allHues = ['r', 'R', 'g', 'G', 'b', 'B'];
 var allTints = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
 var lightTints = allTints.slice(12,15);
@@ -121,19 +123,25 @@ function colorizeCell(x, y, color) {
     ;
 }
 
-function paintCell(x, y, color, options) {
+function paintCell(x, y, color, styleOptions, content) {
+  // set defaults for optional options
+  if (typeof(styleOptions) === 'undefined') styleOptions = {};
+  if (typeof(content) === 'undefined') content = "";
+
   var c = document.createElement("div");
-  var opts = {
+  var styleOpts = {
     "left": (x-1)*cellWidth, // TODO: move this to this.pathIndex[0]?
     "top": (y-1)*cellHeight,
-    "background-color": "#" + color
+    "background-color": "#" + color,
+    "width": cellWidth,
+    "height": cellHeight
   };
   // var opts = $.extend({}, defaultOptions, options);
-  var opts = $.extend(opts, options);
+  var styleOpts  = $.extend(styleOpts, styleOptions);
   $(c).attr("id", "cell-" + x.toString() + "-" + y.toString())
     .attr("class", "cell")
-    .css(opts)
-    .text(getRandomFromArray(rangeBetween('A','Z')))
+    .css(styleOpts)
+    .text(content);
     ;
     $("#cell-container-box").append(c);
 }
@@ -192,8 +200,8 @@ Painting.prototype.BlindMansRainbow = function () {
   this.pathIndex = stepNext(this.pathIndex, this.movement); // becuase life at the limits (how to stepnext) may be important for the individual painters here; same for brush
   this.movesTaken++;
 }
-Painting.prototype.Drips = function (options) {
-  paintCell(this.pathIndex[0], this.pathIndex[1], this.brush, options);
+Painting.prototype.Drips = function (styleOptions, content) {
+  paintCell(this.pathIndex[0], this.pathIndex[1], this.brush, styleOptions, content);
 
   this.brush = getNearColor(this.brush, this.tints, this.hues);
   this.movement = [0,1];
@@ -213,9 +221,10 @@ function saveImage() {
   html2canvas($("#cell-container-box"), {
     onrendered: function(canvas) {
       theCanvas = canvas;
-      canvas.toBlob(function(blob) {
-        saveAs(blob, "painting.png");
-      });
+      window.location = canvas.toDataURL("image/png");
+      // canvas.toBlob(function(blob) {
+        // saveAs(blob, "painting.png");
+      // });
     }
     // , background: "#" + 'bf0000'
   });
@@ -243,23 +252,45 @@ $(function () {
     callback;
   }
 
-  var opt1 = function () {
+  // these must be functions so they're dynamic. otherwise the variables (Math.random(), &c) will be one-offs
+  var styleOpt0 = function () {
+    return {
+      "width": cellWidth,
+      "height": cellHeight
+    };
+  }
+  var styleOpt1 = function () {
     return {
       "width": cellWidth * (Math.random()+1),
       "height": cellHeight * (Math.random()+1),
       "border-radius": "50%",
       "transform":
-      "scale("+ (Math.random() < 0.5 ? 1 : -1) * Math.random()*2+  "," + (Math.random() < 0.5 ? 1 : -1) * Math.random()*2 + ") " +
+      "scale("+ (Math.random() < 0.5 ? 1 : -1) * Math.random()*1+  "," + (Math.random() < 0.5 ? 1 : -1) * Math.random()*1 + ") " +
         "skew(" + (Math.random() < 0.5 ? 1 : -1) * getRandomNumber(20) + "deg," + (Math.random() < 0.5 ? 1 : -1) * getRandomNumber(20) + "deg)" +
         "rotate(" + Math.floor(Math.random() * 360) + "deg)",
       "color": "#ffffff"
     };
   };
+  var styleOpt2 = function () {
+    return {
+      "width": cellWidth,
+      "height": cellHeight,
+      "border-radius": "50%",
+      "transform":
+      "scale("+ Math.random()+2 + ") ",
+        // "rotate(" + Math.floor(Math.random() * 360) + "deg)",
+      "color": getRandomColor(allTints),
+      "vertical-align":"top",
+      "font-size":"smaller"
+    };
+  };
 
+  // var dripPainting2 = new Painting(fill_Resolution, [1,1], 'bf0000', allTints.slice(7,15), 'rgGbB');
   var dripPainting2 = new Painting(fill_Resolution, [1,1], 'bf0000', allTints.slice(7,15), 'rgGbB');
   var paintDrips2 = function (callback) {
     while (dripPainting2.movesTaken < dripPainting2.maxMoves) {
-      dripPainting2.Drips(opt1());
+      // dripPainting2.Drips(styleOpt1(), getRandomFromArray(rangeBetween('a','z')));
+      dripPainting2.Drips(styleOpt2(), getRandomFromArray(dotSelection));
     }
     callback;
   }
@@ -267,6 +298,6 @@ $(function () {
   // setGrid(paintBlindly());
   // setGrid(paintDrips());
   // setGrid(paintDrips(paintBlindly()));
-  // setGrid(paintBlindly(paintDrips()));
-  setGrid(paintDrips2());
+  setGrid(paintBlindly(paintDrips()));
+  // setGrid(paintDrips2());
 });

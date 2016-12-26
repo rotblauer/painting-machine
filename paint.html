@@ -2,23 +2,27 @@
     <head>
         <script src="lib/jquery-1.11.3.min.js"></script>
         <script src="lib/Blob.js"></script>
-        <script src="lib/canvas-to-blob.min.js"></script>
+        <!-- <script src="lib/canvas-to-blob.min.js.map"></script> -->
+        <!-- <script src="lib/canvas-to-blob.min.js"></script> -->
+        <script src="lib/canvas-to-blob.js"></script>
         <script src="lib/html2canvas.js"></script>
         <script src="lib/FileSaver.min.js"></script>
         <link rel="stylesheet" type="text/css" href="paint.css">
+        <meta charset="UTF-8">
     </head>
-    
+
     <body>
     <div class="main">
-        <div class="row">
+      <div id="picture-frame">
+        <div id="cell-container-box"></div>
+      </div>
+    </div>
+        <div class="row" style="float: bottom;">
             <button id="saveImageButton" class="">
                 Save Image
             </button>
+            <span style="color: gray; font-size: smaller;">(Might take a hot sec.)</span>
         </div>
-    	<div id="picture-frame">
-    		<div id="cell-container-box"></div>	
-    	</div>
-    </div>
     <!-- <div id="img-out"></div> -->
 
 		<!-- <script src="dajs.js"></script> -->
