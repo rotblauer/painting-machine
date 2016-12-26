@@ -12,6 +12,7 @@ var tickRate = 1; // milliseconds
 var defaultTotalMovesAllowed = 10000;
 
 var frame = $("#picture-frame");
+var canvass = $('#cell-container-box');
 
 // Computed globals
 // x_res = 100
@@ -164,24 +165,34 @@ function updateRandomWithRandom(max, colors) {
  	colorizeCell(index, index2, getRandomColor(colors));
 }
 
-function stepNext(coords, incrementArray) {
-  // console.log("dn coords", coords);
+function stepNext(coords, incrementArray, isBoundedByFrame) {
+  if (typeof(isBoundedByFrame) === 'undefined') isBoundedByFrame = true;
+
 	var s = sumArrayElements(coords, incrementArray);
 
-	// one way to wrap if extends beyond painting
-  if (s[0] > x_Resolution) {
-    s[0] = 1;
-    s[1]++;
-  }
-  if (s[1] > y_Resolution) {
-    s[0]++;
-    s[1] = 1
-  }
-	// if (s[0] > x_Resolution || s[1] > y_Resolution || s[0] < 0 || s[1] < 0) {
-	// 	s = getRandomCoord();
-	// }
+  if (!isBoundedByFrame) {
 
-	return s;
+    // // one way to wrap if extends beyond painting
+    // if (s[0] > x_Resolution) {
+    //   s[0] = 1;
+    //   s[1]++;
+    // }
+    // if (s[1] > y_Resolution) {
+    //   s[0]++;
+    //   s[1] = 1
+    // }
+
+  } else {
+
+      if (s[0] > x_Resolution || s[0] < 1) {
+        s[0] = getRandomCoord()[0];
+      }
+      if (s[1] > y_Resolution || s[1] < 1) {
+        s[1] = getRandomCoord()[1];
+      }
+
+  }
+  return s;
 }
 
 function Painting (maxMoves, startingPoint, startColor, tints, hues) {
@@ -193,22 +204,34 @@ function Painting (maxMoves, startingPoint, startColor, tints, hues) {
   this.tints = tints;
   this.hues = hues;
 }
-Painting.prototype.BlindMansRainbow = function () {
-  paintCell(this.pathIndex[0], this.pathIndex[1], this.brush);
+// can extend beyond bounds of canvas
+Painting.prototype.BlindMansRainbow = function (styleOptions, content) {
+  paintCell(this.pathIndex[0], this.pathIndex[1], this.brush, styleOptions, content);
 
   this.brush = getNearColor(this.brush, this.tints, this.hues);
   this.movement = [getRandomFromArray([-1,0,1]), getRandomFromArray([-1,0,1])];
-  this.pathIndex = stepNext(this.pathIndex, this.movement); // becuase life at the limits (how to stepnext) may be important for the individual painters here; same for brush
+  this.pathIndex = stepNext(this.pathIndex, this.movement, false); // becuase life at the limits (how to stepnext) may be important for the individual painters here; same for brush
   this.movesTaken++;
 }
+// constrained to canvas
+Painting.prototype.DrunkardsPacing = function (styleOptions, content) {
+  paintCell(this.pathIndex[0], this.pathIndex[1], this.brush, styleOptions, content);
+
+  this.brush = getNearColor(this.brush, this.tints, this.hues);
+  this.movement = [getRandomFromArray([-1,0,1]), getRandomFromArray([-1,0,1])];
+  this.pathIndex = stepNext(this.pathIndex, this.movement, true); // becuase life at the limits (how to stepnext) may be important for the individual painters here; same for brush
+  this.movesTaken++;
+}
+// like typewriter
 Painting.prototype.Drips = function (styleOptions, content) {
   paintCell(this.pathIndex[0], this.pathIndex[1], this.brush, styleOptions, content);
 
   this.brush = getNearColor(this.brush, this.tints, this.hues);
   this.movement = [0,1];
-  this.pathIndex = stepNext(this.pathIndex, this.movement);
+  this.pathIndex = stepNext(this.pathIndex, this.movement, true);
   this.movesTaken++;
 }
+// like a sideways typewriter
 Painting.prototype.Stripes = function () {
   paintCell(this.pathIndex[0], this.pathIndex[1], this.brush);
 
@@ -249,6 +272,15 @@ $(function () {
   var paintBlindly = function (callback) {
     while (blindmanPainting.movesTaken < blindmanPainting.maxMoves) {
       blindmanPainting.BlindMansRainbow();
+    }
+    callback;
+  }
+
+  var blindmanPainting2 = new Painting(fill_Resolution, [1,1], 'ffffff', allTints, 'rRgGbB');
+  var paintBlindly2 = function (callback) {
+    canvass.css({"background-color": "gold"});
+    while (blindmanPainting2.movesTaken < blindmanPainting2.maxMoves) {
+      blindmanPainting2.DrunkardsPacing(styleOpt4());
     }
     callback;
   }
@@ -305,6 +337,25 @@ $(function () {
     };
   };
 
+  var styleOpt4 = function (x) {
+    return {
+      "width": cellWidth,
+      "height": cellHeight,
+      "border-radius": getRandomNumber(25,50) + "%",
+      "filter": "blur(" + getRandomNumber(1,4) + "px)",
+      "transform":
+      // "translate(0, " + Math.sin((x)/(x_Resolution+1)*Math.PI)*y_Resolution + getRandomNumber(0,20) + "px)"
+      "scale(" + getRandomNumber(0,4) + "," + getRandomNumber(0,4) + ")"
+      // + "scale(" + Math.random()*2 + ") "
+      + "rotate(" + Math.floor(Math.random() * 360) + "deg)",
+      "color": getRandomColor(allTints),
+      "opacity": Math.random().toString(),
+      "vertical-align":"top",
+      "text-align":"center",
+      "font-size":"smaller"
+    };
+  };
+
   var dripPainting2 = new Painting(fill_Resolution, [1,1], 'bf0000', allTints.slice(7,15), 'rgGbB');
   var paintDrips2 = function (callback) {
     while (dripPainting2.movesTaken < dripPainting2.maxMoves) {
@@ -314,7 +365,7 @@ $(function () {
     callback;
   }
 
-  var dripPainting3 = new Painting(fill_Resolution, [1,1], getRandomColor(allTints), allTints, 'rgbB');
+  var dripPainting3 = new Painting(fill_Resolution, [1,1], getRandomColor(allTints), allTints, 'rgGb');
   var paintDrips3 = function (callback) {
     while (dripPainting3.movesTaken < dripPainting3.maxMoves) {
       // dripPainting3.Drips(styleOpt1(), getRandomFromArray(rangeBetween('a','z')));
@@ -328,5 +379,6 @@ $(function () {
   // setGrid(paintDrips(paintBlindly()));
   // setGrid(paintBlindly(paintDrips()));
   // setGrid(paintDrips2());
-  setGrid(paintDrips3());
+  // setGrid(paintDrips3());
+  setGrid(paintBlindly2())
 });
