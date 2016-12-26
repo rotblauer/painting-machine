@@ -4,7 +4,7 @@
     /*border: 1px solid pink;*/
 }
 #picture-frame {
-    border: 5px solid gold;
+    /* border: 10px solid gold; */
     height: 500px;
     width: 700px;
     padding:0;
@@ -18,6 +18,9 @@
     /*overflow: hidden;*/
     /*display: hidden; show with hangChristmasLights() */
     /*padding-left: 3px;*/
+    -webkit-box-shadow: 3px 4px 17px -8px rgba(0,0,0,0.75);
+    -moz-box-shadow: 3px 4px 17px -8px rgba(0,0,0,0.75);
+    box-shadow: 3px 4px 17px -8px rgba(0,0,0,0.75);
 }
 .cell {
     position: absolute;

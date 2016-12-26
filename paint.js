@@ -37,7 +37,7 @@ var fill_Resolution = x_Resolution*y_Resolution;
                 $(this).css({position:'absolute', margin:0, top: (top > 0 ? top : 0)+'px', left: (left > 0 ? left : 0)+'px'});
             });
         }
-    }); 
+    });
 })(jQuery);
 
 function getRandomNumber(max) {
@@ -50,7 +50,7 @@ function getRandomFromArray(arr) {
 	return arr[Math.floor(Math.random()*arr.length)]
 }
 function getRandomColor(tints) {
-    var color = ''; 
+    var color = '';
     for (var i = 0; i < 6; i++ ) {
         color += tints[Math.floor(getRandomNumber(tints.length))];
     }
@@ -75,24 +75,24 @@ function getNearTint(tint, tintSet) {
 // returns 'ff0fff'
 // tintSet: allTints, lightTints, &c
 // hueSet: rRgGbB --- sets rrggbb locations to mess with; ie [0,1,2] is rrg, [3,5,6] is gbb
-// 
+//
 function getNearColor(color, tintSet, hueString) {
   var hueSet = hueString.split(""); // 'rRg' -> ['r', 'R', 'g']
 	var i = getRandomFromArray(hueSet); // ie 'r', 'G', ...
   var hueIndex = allHues.indexOf(i); // 1, 0, 4, ...
-  var colorArr = color.split(""); 
+  var colorArr = color.split("");
   var char = colorArr[hueIndex];
   var newTint = getNearTint(char, tintSet);
   colorArr[hueIndex] = newTint;
   return colorArr.join("");
 }
-function sumArrayElements(){   
-  var arrays  = arguments, 
-    results   =   [], 
-    count     =   arrays[0].length, 
-    L         =   arrays.length, 
-    sum, 
-    next      =   0, 
+function sumArrayElements(){
+  var arrays  = arguments,
+    results   =   [],
+    count     =   arrays[0].length,
+    L         =   arrays.length,
+    sum,
+    next      =   0,
     i;
   while(next < count){
     sum = 0, i = 0;
@@ -103,27 +103,37 @@ function sumArrayElements(){
   }
   return results;
 }
+// http://stackoverflow.com/questions/12376870/create-an-array-of-characters-from-specified-range
+// Use: rangeBetween('A', 'Z')
+function rangeBetween(start,stop) {
+  var result=[];
+  for (var idx=start.charCodeAt(0),end=stop.charCodeAt(0); idx <=end; ++idx){
+    result.push(String.fromCharCode(idx));
+  }
+  return result;
+};
 
 function colorizeCell(x, y, color) {
 	$('#cell-'+x.toString()+y.toString())
 		// .fadeOut(tickRate)
 		.css({"background-color": "#" + color})
 		// .fadeIn(tickRate)
-		;	
+    ;
 }
 
-function paintCell(x, y, color) {
+function paintCell(x, y, color, options) {
   var c = document.createElement("div");
+  var opts = {
+    "left": (x-1)*cellWidth, // TODO: move this to this.pathIndex[0]?
+    "top": (y-1)*cellHeight,
+    "background-color": "#" + color
+  };
+  // var opts = $.extend({}, defaultOptions, options);
+  var opts = $.extend(opts, options);
   $(c).attr("id", "cell-" + x.toString() + "-" + y.toString())
     .attr("class", "cell")
-    .css({
-      "background-color": "#" + color,
-      "width": cellWidth,
-      "height": cellHeight,
-
-      "left": (x-1)*cellWidth,
-      "top": (y-1)*cellHeight
-    })
+    .css(opts)
+    .text(getRandomFromArray(rangeBetween('A','Z')))
     ;
     $("#cell-container-box").append(c);
 }
@@ -132,7 +142,7 @@ function setGrid(callback) {
 	frame.center();
 	frame.css({
     "background-color": "#" + defaultColor,
-    
+
     // fix rounding issue leaving a margin
     "height": cellHeight*y_Resolution
   });
@@ -148,12 +158,12 @@ function updateRandomWithRandom(max, colors) {
 function stepNext(coords, incrementArray) {
   // console.log("dn coords", coords);
 	var s = sumArrayElements(coords, incrementArray);
-	
+
 	// one way to wrap if extends beyond painting
   if (s[0] > x_Resolution) {
     s[0] = 1;
     s[1]++;
-  } 
+  }
   if (s[1] > y_Resolution) {
     s[0]++;
     s[1] = 1
@@ -161,7 +171,7 @@ function stepNext(coords, incrementArray) {
 	// if (s[0] > x_Resolution || s[1] > y_Resolution || s[0] < 0 || s[1] < 0) {
 	// 	s = getRandomCoord();
 	// }
-   
+
 	return s;
 }
 
@@ -175,24 +185,24 @@ function Painting (maxMoves, startingPoint, startColor, tints, hues) {
   this.hues = hues;
 }
 Painting.prototype.BlindMansRainbow = function () {
-  paintCell(this.pathIndex[0], this.pathIndex[1], this.brush); 
-  
+  paintCell(this.pathIndex[0], this.pathIndex[1], this.brush);
+
   this.brush = getNearColor(this.brush, this.tints, this.hues);
   this.movement = [getRandomFromArray([-1,0,1]), getRandomFromArray([-1,0,1])];
-  this.pathIndex = stepNext(this.pathIndex, this.movement); // becuase life at the limits (how to stepnext) may be important for the individual painters here; same for brush 
+  this.pathIndex = stepNext(this.pathIndex, this.movement); // becuase life at the limits (how to stepnext) may be important for the individual painters here; same for brush
   this.movesTaken++;
 }
-Painting.prototype.Drips = function () {
-  paintCell(this.pathIndex[0], this.pathIndex[1], this.brush); 
-  
+Painting.prototype.Drips = function (options) {
+  paintCell(this.pathIndex[0], this.pathIndex[1], this.brush, options);
+
   this.brush = getNearColor(this.brush, this.tints, this.hues);
   this.movement = [0,1];
   this.pathIndex = stepNext(this.pathIndex, this.movement);
   this.movesTaken++;
 }
 Painting.prototype.Stripes = function () {
-  paintCell(this.pathIndex[0], this.pathIndex[1], this.brush); 
-  
+  paintCell(this.pathIndex[0], this.pathIndex[1], this.brush);
+
   this.brush = getNearColor(this.brush, this.tints, this.hues);
   this.movement = [1,0];
   this.pathIndex = stepNext(this.pathIndex, this.movement);
@@ -204,7 +214,7 @@ function saveImage() {
     onrendered: function(canvas) {
       theCanvas = canvas;
       canvas.toBlob(function(blob) {
-        saveAs(blob, "painting.png"); 
+        saveAs(blob, "painting.png");
       });
     }
     // , background: "#" + 'bf0000'
@@ -232,19 +242,31 @@ $(function () {
     }
     callback;
   }
+
+  var opt1 = function () {
+    return {
+      "width": cellWidth * (Math.random()+1),
+      "height": cellHeight * (Math.random()+1),
+      "border-radius": "50%",
+      "transform":
+      "scale("+ (Math.random() < 0.5 ? 1 : -1) * Math.random()*2+  "," + (Math.random() < 0.5 ? 1 : -1) * Math.random()*2 + ") " +
+        "skew(" + (Math.random() < 0.5 ? 1 : -1) * getRandomNumber(20) + "deg," + (Math.random() < 0.5 ? 1 : -1) * getRandomNumber(20) + "deg)" +
+        "rotate(" + Math.floor(Math.random() * 360) + "deg)",
+      "color": "#ffffff"
+    };
+  };
+
+  var dripPainting2 = new Painting(fill_Resolution, [1,1], 'bf0000', allTints.slice(7,15), 'rgGbB');
+  var paintDrips2 = function (callback) {
+    while (dripPainting2.movesTaken < dripPainting2.maxMoves) {
+      dripPainting2.Drips(opt1());
+    }
+    callback;
+  }
+
   // setGrid(paintBlindly());
   // setGrid(paintDrips());
   // setGrid(paintDrips(paintBlindly()));
-  setGrid(paintBlindly(paintDrips()));
-  
-
-
+  // setGrid(paintBlindly(paintDrips()));
+  setGrid(paintDrips2());
 });
-
-
-
-
-
-
-
-
