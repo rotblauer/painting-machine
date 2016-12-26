@@ -145,7 +145,7 @@ function updateRandomWithRandom(max, colors) {
  	colorizeCell(index, index2, getRandomColor(colors));
 }
 
-function stepNext(coords, incrementArray, color) {
+function stepNext(coords, incrementArray) {
   // console.log("dn coords", coords);
 	var s = sumArrayElements(coords, incrementArray);
 	
@@ -174,7 +174,7 @@ function Painting (maxMoves, startingPoint, startColor, tints, hues) {
   this.tints = tints;
   this.hues = hues;
 
-  if (this.movesTaken = 0) {
+  if (this.movesTaken == 0) {
     paintCell(this.pathIndex[0], this.pathIndex[1], this.brush);  
   }
 }
@@ -183,7 +183,7 @@ Painting.prototype.BlindMansRainbow = function () {
   
   this.brush = getNearColor(this.brush, this.tints, this.hues);
   this.movement = [getRandomFromArray([-1,0,1]), getRandomFromArray([-1,0,1])];
-  this.pathIndex = stepNext(this.pathIndex, this.movement, this.brush); // becuase life at the limits (how to stepnext) may be important for the individual painters here; same for brush 
+  this.pathIndex = stepNext(this.pathIndex, this.movement); // becuase life at the limits (how to stepnext) may be important for the individual painters here; same for brush 
   this.movesTaken++;
 }
 Painting.prototype.Drips = function () {
@@ -191,7 +191,7 @@ Painting.prototype.Drips = function () {
   
   this.brush = getNearColor(this.brush, this.tints, this.hues);
   this.movement = [0,1];
-  this.pathIndex = stepNext(this.pathIndex, this.movement, this.brush);
+  this.pathIndex = stepNext(this.pathIndex, this.movement);
   this.movesTaken++;
 }
 Painting.prototype.Stripes = function () {
@@ -199,7 +199,7 @@ Painting.prototype.Stripes = function () {
   
   this.brush = getNearColor(this.brush, this.tints, this.hues);
   this.movement = [1,0];
-  this.pathIndex = stepNext(this.pathIndex, this.movement, this.brush);
+  this.pathIndex = stepNext(this.pathIndex, this.movement);
   this.movesTaken++;
 }
 
