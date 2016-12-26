@@ -1,29 +1,10 @@
 .main {
-    display: table;
-    table-layout: fixed;
     width: 100%;
     height: 100vh;
-    border: 1px solid pink;
+    /*border: 1px solid pink;*/
 }
-.column {
-    display: table-cell;
-    border: 1px solid blue;
-}
-.row {
-    display: block;
-    border: 1px solid white;
-    background-color: #da39a3;
-}
-
-
-.testes {
-    height: 300px;
-    width: 300px;
-    background-color: red;
-}
-
 #picture-frame {
-    border: 5px solid black;
+    border: 5px solid gold;
     height: 500px;
     width: 700px;
     padding:0;
@@ -39,14 +20,9 @@
     /*padding-left: 3px;*/
 }
 .cell {
-    /*display: relative;*/
     position: absolute;
-    /*border: 1px solid red;*/
     /*border-radius: 50%;*/
-    /*margin-left: 2px;*/
-    /*margin-right: 2px;*/
+    /*border-bottom-right-radius: 50%;*/
     margin: 0;
     padding: 0;
-    /*height: 100%;*/
-    /*margin-bottom: 3px; dunno why need this spacer*/
 }
