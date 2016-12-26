@@ -173,10 +173,6 @@ function Painting (maxMoves, startingPoint, startColor, tints, hues) {
   this.movement = [];
   this.tints = tints;
   this.hues = hues;
-
-  if (this.movesTaken == 0) {
-    paintCell(this.pathIndex[0], this.pathIndex[1], this.brush);  
-  }
 }
 Painting.prototype.BlindMansRainbow = function () {
   paintCell(this.pathIndex[0], this.pathIndex[1], this.brush); 
