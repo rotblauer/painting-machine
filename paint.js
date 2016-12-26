@@ -16,7 +16,7 @@ var canvass = $('#cell-container-box');
 
 // Computed globals
 // x_res = 100
-var x_Resolution = 100;
+var x_Resolution = 50; // TODO: move to per painting config
 // width = 100
 var frameWidth = frame.width();
 // cell_width = 1
@@ -43,6 +43,33 @@ var fill_Resolution = x_Resolution*y_Resolution;
         }
     });
 })(jQuery);
+
+// return all neighboring elements for a given coord
+// returns [[14,31],[45,12]];
+function getExistingNeighborCoords(coords) {
+  var neighbors = getNeighborCoords(coords);
+  var out = [];
+  for (i in neighbors) {
+      var neighbor = $("#cell-" + neighbors[i][0] + "-" + neighbors[j][1]);
+      if (neighbor.length) {
+        out.push([neighbors[i][0],neighbors[j][1]]);
+      }
+  }
+  return out;
+}
+
+function getNeighborCoords(coords) {
+  var a = [-1,0,1];
+  var out = [];
+  for (i in a) {
+    for (j in a) {
+      if (a[i] + a[j] != 0) {
+        out.push(sumArrayElements(coords, [a[i],a[j]]));
+      }
+    }
+  }
+  return out;
+}
 
 function getRandomNumber(min,max) {
   return Math.floor(Math.random() * max) + min;
@@ -242,7 +269,7 @@ Painting.prototype.Stripes = function () {
 }
 
 function saveImage() {
-  html2canvas($("#cell-container-box"), {
+  html2canvas($("#picture-frame"), {
     onrendered: function(canvas) {
       theCanvas = canvas;
       window.location = canvas.toDataURL("image/png");
@@ -276,7 +303,7 @@ $(function () {
     callback;
   }
 
-  var blindmanPainting2 = new Painting(fill_Resolution, [1,1], 'ffffff', allTints, 'rRgGbB');
+  var blindmanPainting2 = new Painting(fill_Resolution, getRandomCoord(), '000000', allTints, 'rRgGb');
   var paintBlindly2 = function (callback) {
     canvass.css({"background-color": "gold"});
     while (blindmanPainting2.movesTaken < blindmanPainting2.maxMoves) {
