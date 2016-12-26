@@ -5,7 +5,7 @@ var lightTints = allTints.slice(12,15);
 var darkTints = allTints.slice(0,8);
 var xSize = 100;
 var defaultColor = "ffffff";
-var tickRate = 20; // milliseconds
+var tickRate = 500; // milliseconds
 var totalMoves = 0;
 var totalMovesAllowed = 10000;
 var frame = $("#picture-frame");
@@ -137,9 +137,17 @@ function drawNext(coords, incrementArray, color) {
 	var s = sumArrayElements(coords, incrementArray);
 	
 	// wrap if extends beyond painting
-	if (s[0] > xSize || s[1] > ySize || s[0] < 0 || s[1] < 0) {
-		s = getRandomCoord();
-	}
+  if (s[0] > xSize) {
+    s[0] = 1;
+    s[1]++;
+  } 
+  if (s[1] > ySize) {
+    s[0]++;
+    s[1] = 1
+  }
+	// if (s[0] > xSize || s[1] > ySize || s[0] < 0 || s[1] < 0) {
+	// 	s = getRandomCoord();
+	// }
 	colorizeCell(s[0], s[1], color);
 	return s;
 }
@@ -160,31 +168,32 @@ Painting.prototype.BlindMansRainbow = function () {
   this.pathIndex = drawNext(this.pathIndex, this.movement, this.brush);
   this.movesTaken++;
   if (this.movesTaken == this.maxMoves) { return; }
-  // this.BlindMansRainbow();
 }
 Painting.prototype.Drips = function () {
-  this.movement = [0,1];
+  this.movement = [1,0];
   this.brush = getNearColor(this.brush, this.tints, this.hues);
   this.pathIndex = drawNext(this.pathIndex, this.movement, this.brush);
   console.log('pathIndex', this.pathIndex);
   console.log('movesTaken: ', this.movesTaken);
   this.movesTaken++
-  // return this.movesTaken;
 }
 
 $(function () {
-  setGrid(null);
+  
 
   // var blindman1 = new Painting(100, [0,0], '112233', allTints, 'rRgGbB').BlindMansRainbow();
-  var p1 = new Painting(100, getRandomCoord(), 'bf0000', allTints, 'rR');
-
-  var paintDrips = function () {
-    if (p1.movesTaken < p1.maxMoves) {
-      p1.Drips();
+  var p1 = new Painting(1000, [1,1], 'bf0000', allTints, 'rR');
+  function x () {
+    var paintDrips = function () {
+      if (p1.movesTaken < p1.maxMoves) {
+        p1.Drips();
+      }
+      setTimeout(paintDrips, tickRate);
     }
-    setTimeout(paintDrips, tickRate);
+    setTimeout(paintDrips, tickRate);  
   }
-  setTimeout(paintDrips, tickRate);
+  setGrid(x());
+  
 	// pathIndex = getRandomCoord();
 	
 	// // var color = getRandomColor(allTints);
