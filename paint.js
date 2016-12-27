@@ -45,17 +45,23 @@ var fill_Resolution = x_Resolution*y_Resolution;
 })(jQuery);
 
 // return all neighboring elements for a given coord
-// returns [[14,31],[45,12]];
-function getExistingNeighborCoords(coords) {
+// returns { existing:[[[14,31],[45,12]], empty:[[14,30],[21,22]]};, where [0] is existing, [1] empty
+function getNeighbors(coords) {
   var neighbors = getNeighborCoords(coords);
-  var out = [];
+  var existing = [];
+  var empty = [];
   for (i in neighbors) {
       var neighbor = $("#cell-" + neighbors[i][0] + "-" + neighbors[j][1]);
       if (neighbor.length) {
-        out.push([neighbors[i][0],neighbors[j][1]]);
+        existing.push([neighbors[i][0],neighbors[j][1]]);
+      } else {
+        empty.push([neighbors[i][0], neighbors[j][1]]);
       }
   }
-  return out;
+  return {
+    "existing": existing,
+    "empty": empty
+  };
 }
 
 function getNeighborCoords(coords) {
@@ -96,10 +102,12 @@ function getNearTint(tint, tintSet) {
   }
 	var inc = Math.random() < 0.5 ? 1 : -1;  // either + or - the tint, TODO: argue near-increment and/or variabilty
 	var j = i + inc;
-  if (j < 0) {
-    j = getRandomNumber(0,tintSet.length);  // TODO: there are many more ways to handle this case
-  }
-	return tintSet[j % tintSet.length];
+
+  // if (j < 0) {
+  //   j = getRandomNumber(0,tintSet.length);  // TODO: there are many more ways to handle this case
+  // }
+
+  return tintSet[Math.abs(j) % tintSet.length];
 }
 
 // color: 'ffffff'
@@ -117,7 +125,7 @@ function getNearColor(color, tintSet, hueString) {
   colorArr[hueIndex] = newTint;
   return colorArr.join("");
 }
-function sumArrayElements(){
+var sumArrayElements = function () {
   var arrays  = arguments,
     results   =   [],
     count     =   arrays[0].length,
@@ -192,25 +200,23 @@ function updateRandomWithRandom(max, colors) {
  	colorizeCell(index, index2, getRandomColor(colors));
 }
 
-function stepNext(coords, incrementArray, isBoundedByFrame) {
+function stepNext(coords, chooseNext, isBoundedByFrame) {
   if (typeof(isBoundedByFrame) === 'undefined') isBoundedByFrame = true;
-
-	var s = sumArrayElements(coords, incrementArray);
-
-  if (!isBoundedByFrame) {
-
-    // // one way to wrap if extends beyond painting
-    // if (s[0] > x_Resolution) {
-    //   s[0] = 1;
-    //   s[1]++;
-    // }
-    // if (s[1] > y_Resolution) {
-    //   s[0]++;
-    //   s[1] = 1
-    // }
-
+  // if we use the deprecated default of simple incrementing we'll default
+  if (chooseNext.constructor === Array) {
+    var s = sumArrayElements(coords, chooseNext);
   } else {
+    var s = chooseNext(coords);
+  }
 
+
+    if (!isBoundedByFrame) {
+
+      // TODO: keep cells within window?
+
+    } else {
+
+      // TODO: handle these cases  more optionally
       if (s[0] > x_Resolution || s[0] < 1) {
         s[0] = getRandomCoord()[0];
       }
@@ -218,7 +224,8 @@ function stepNext(coords, incrementArray, isBoundedByFrame) {
         s[1] = getRandomCoord()[1];
       }
 
-  }
+    }
+
   return s;
 }
 
@@ -249,6 +256,27 @@ Painting.prototype.DrunkardsPacing = function (styleOptions, content) {
   this.pathIndex = stepNext(this.pathIndex, this.movement, true); // becuase life at the limits (how to stepnext) may be important for the individual painters here; same for brush
   this.movesTaken++;
 }
+
+var findEmptyNeighborBeligerently = function (coords) {
+  var empties = getNeighbors(coords)["empty"];
+  if (empties.length === 0) {
+    var r = getRandomCoord();
+    console.log('rando', r);
+    return r; // this is the beligerent part
+  } else {
+    return getRandomFromArray(empties);
+  }
+}
+// constrained to canvas and is gentle with neighbors
+Painting.prototype.DrunkardsPacingGently = function (styleOptions, content) {
+  paintCell(this.pathIndex[0], this.pathIndex[1], this.brush, styleOptions, content);
+
+  this.brush = getNearColor(this.brush, this.tints, this.hues);
+  
+  this.pathIndex = stepNext(this.pathIndex, findEmptyNeighborBeligerently, true); // becuase life at the limits (how to stepnext) may be important for the individual painters here; same for brush
+  this.movesTaken++;
+}
+
 // like typewriter
 Painting.prototype.Drips = function (styleOptions, content) {
   paintCell(this.pathIndex[0], this.pathIndex[1], this.brush, styleOptions, content);
@@ -382,6 +410,24 @@ $(function () {
       "font-size":"smaller"
     };
   };
+  var styleOpt5 = function () {
+    return {
+      "width": cellWidth,
+      "height": cellHeight,
+      "border-radius": getRandomNumber(35,50) + "%",
+      "filter": "blur(" + getRandomNumber(1,8) + "px)",
+      "transform":
+      // "translate(0, " + Math.sin((x)/(x_Resolution+1)*Math.PI)*y_Resolution + getRandomNumber(0,20) + "px)"
+      // "scale(" + getRandomNumber(0,2) + "," + getRandomNumber(0,3) + ")"
+      + "scale(" + getRandomNumber(0,3) + ") "
+      + "rotate(" + Math.floor(Math.random() * 360) + "deg)",
+      // "color": getRandomColor(allTints),
+      "opacity": Math.random().toString()
+      // "vertical-align":"top",
+      // "text-align":"center",
+      // "font-size":"smaller"
+    };
+  };
 
   var dripPainting2 = new Painting(fill_Resolution, [1,1], 'bf0000', allTints.slice(7,15), 'rgGbB');
   var paintDrips2 = function (callback) {
@@ -401,11 +447,20 @@ $(function () {
     callback;
   }
 
+  var drunkardsPainting1 = new Painting(fill_Resolution, [1,y_Resolution], getRandomColor(allTints), allTints, 'rgGb');
+  var paintDrunk1 = function (callback) {
+    while (drunkardsPainting1.movesTaken < drunkardsPainting1.maxMoves) {
+      drunkardsPainting1.DrunkardsPacingGently(styleOpt5()); // getRandomFromArray(dotSelectionJustDots))
+    }
+    callback;
+  }
+
   // setGrid(paintBlindly());
   // setGrid(paintDrips());
   // setGrid(paintDrips(paintBlindly()));
   // setGrid(paintBlindly(paintDrips()));
   // setGrid(paintDrips2());
   // setGrid(paintDrips3());
-  setGrid(paintBlindly2())
+  // setGrid(paintBlindly2())
+  setGrid(paintDrunk1());
 });
