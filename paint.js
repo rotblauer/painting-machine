@@ -373,6 +373,9 @@ $(function () {
     };
   };
 
+
+  // TODO: catenary
+  // =  a * cosh(t/a),
   var styleOpt3 = function (x) {
     return {
       "width": cellWidth,
@@ -410,13 +413,15 @@ $(function () {
       "font-size":"smaller"
     };
   };
-  var styleOpt5 = function () {
+  var a = 0.05;
+  var styleOpt5 = function (x) {
     return {
       "width": cellWidth,
       "height": cellHeight,
       "border-radius": getRandomNumber(35,50) + "%",
       "filter": "blur(" + getRandomNumber(1,8) + "px)",
       "transform":
+      "translate(0, " + (a * Math.cos(x/a)) + "px)"
       // "translate(0, " + Math.sin((x)/(x_Resolution+1)*Math.PI)*y_Resolution + getRandomNumber(0,20) + "px)"
       // "scale(" + getRandomNumber(0,2) + "," + getRandomNumber(0,3) + ")"
       + "scale(" + getRandomNumber(0,3) + ") "
@@ -450,7 +455,7 @@ $(function () {
   var drunkardsPainting1 = new Painting(fill_Resolution, [1,y_Resolution], getRandomColor(allTints), allTints, 'rgGb');
   var paintDrunk1 = function (callback) {
     while (drunkardsPainting1.movesTaken < drunkardsPainting1.maxMoves) {
-      drunkardsPainting1.DrunkardsPacingGently(styleOpt5()); // getRandomFromArray(dotSelectionJustDots))
+      drunkardsPainting1.DrunkardsPacingGently(styleOpt5(drunkardsPainting1.pathIndex[0])); // getRandomFromArray(dotSelectionJustDots))
     }
     callback;
   }
@@ -462,5 +467,5 @@ $(function () {
   // setGrid(paintDrips2());
   // setGrid(paintDrips3());
   // setGrid(paintBlindly2())
-  setGrid(paintDrunk1());
+  setGrid(paintDrunk1());  // the neighborlyWalk tends upward. why?
 });
