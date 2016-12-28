@@ -11,6 +11,7 @@ var defaultColor = "ffffff";
 var tickRate = 1; // milliseconds
 var defaultTotalMovesAllowed = 10000;
 
+var main = $("#main");
 var frame = $("#picture-frame");
 var canvass = $('#cell-container-box');
 
@@ -184,13 +185,14 @@ function paintCell(x, y, color, styleOptions, content) {
 }
 
 function setGrid(callback) {
-	frame.center();
+  
 	frame.css({
     "background-color": "#" + defaultColor,
 
     // fix rounding issue leaving a margin
     "height": cellHeight*y_Resolution
   });
+  frame.center();
 	callback;
 }
 
@@ -460,6 +462,17 @@ $(function () {
     callback;
   }
 
+  var fadeEm = function () {
+    console.log('fading out');
+    var c = getRandomCoord();
+    var cc = $('#cell-' + c[0] + '-' + c[1]);
+    if (cc.length) {
+      cc.fadeOut(400);
+    }
+    setTimeout(fadeEm, 10);
+  }
+  setTimeout(fadeEm, 2000);
+
   // setGrid(paintBlindly());
   // setGrid(paintDrips());
   // setGrid(paintDrips(paintBlindly()));
@@ -468,4 +481,5 @@ $(function () {
   // setGrid(paintDrips3());
   // setGrid(paintBlindly2())
   setGrid(paintDrunk1());  // the neighborlyWalk tends upward. why?
+  localStorage.setItem("Isaac", "waz here.")
 });
